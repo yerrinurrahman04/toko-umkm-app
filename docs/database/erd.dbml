@@ -1,0 +1,152 @@
+// ERD TokoKita - E-Commerce UMKM
+// Format: DBML (dbdiagram.io)
+
+Table users {
+  id bigint [pk, increment]
+  name varchar [not null]
+  email varchar [unique, not null]
+  password varchar [not null]
+  role varchar [not null, default: 'buyer'] // admin, seller, buyer
+  email_verified_at timestamp
+  remember_token varchar
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table shops {
+  id bigint [pk, increment]
+  user_id bigint [not null, ref: > users.id]
+  name varchar [not null]
+  slug varchar [unique, not null]
+  description text
+  logo varchar
+  address varchar
+  operating_hours varchar
+  shipping_area varchar
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table categories {
+  id bigint [pk, increment]
+  name varchar [not null]
+  slug varchar [unique, not null]
+  description text
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table products {
+  id bigint [pk, increment]
+  shop_id bigint [not null, ref: > shops.id]
+  name varchar [not null]
+  slug varchar [unique, not null]
+  description text
+  image varchar
+  price decimal(15,2) [not null]
+  stock integer [not null, default: 0]
+  discount_percentage decimal(5,2) [not null, default: 0.00]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table product_variants {
+  id bigint [pk, increment]
+  product_id bigint [not null, ref: > products.id]
+  name varchar [not null]
+  price decimal(15,2) [not null]
+  stock integer [not null, default: 0]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table vouchers {
+  id bigint [pk, increment]
+  code varchar [unique, not null]
+  type varchar [not null] // fixed, percent
+  value decimal(15,2) [not null]
+  min_spend decimal(15,2) [not null, default: 0.00]
+  start_date date [not null]
+  end_date date [not null]
+  is_active boolean [not null, default: true]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table orders {
+  id bigint [pk, increment]
+  buyer_id bigint [not null, ref: > users.id]
+  shop_id bigint [not null, ref: > shops.id]
+  voucher_id bigint [ref: > vouchers.id]
+  order_number varchar [unique, not null]
+  total_amount decimal(15,2) [not null]
+  discount_amount decimal(15,2) [not null, default: 0.00]
+  shipping_cost decimal(15,2) [not null, default: 0.00]
+  final_amount decimal(15,2) [not null]
+  status varchar [not null, default: 'pending'] // pending, paid, processed, shipping, completed, cancelled, returned
+  shipping_address text [not null]
+  notes varchar
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table order_items {
+  id bigint [pk, increment]
+  order_id bigint [not null, ref: > orders.id]
+  product_id bigint [not null, ref: > products.id]
+  product_variant_id bigint [ref: > product_variants.id]
+  price decimal(15,2) [not null]
+  quantity integer [not null]
+  discount_amount decimal(15,2) [not null, default: 0.00]
+  total decimal(15,2) [not null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table payments {
+  id bigint [pk, increment]
+  order_id bigint [not null, ref: > orders.id]
+  amount decimal(15,2) [not null]
+  payment_method varchar [not null]
+  receipt_image varchar [not null]
+  status varchar [not null, default: 'pending'] // pending, approved, rejected
+  notes text
+  verified_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table shipments {
+  id bigint [pk, increment]
+  order_id bigint [not null, ref: > orders.id]
+  courier_name varchar [not null]
+  tracking_number varchar
+  status varchar [not null, default: 'pending'] // pending, shipped, delivered
+  shipping_cost decimal(15,2) [not null]
+  estimation_time varchar
+  shipped_at timestamp
+  delivered_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table reviews {
+  id bigint [pk, increment]
+  product_id bigint [not null, ref: > products.id]
+  buyer_id bigint [not null, ref: > users.id]
+  order_item_id bigint [not null, ref: > order_items.id]
+  rating integer [not null]
+  comment text
+  is_moderated boolean [not null, default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table category_product {
+  category_id bigint [not null, ref: > categories.id]
+  product_id bigint [not null, ref: > products.id]
+
+  indexes {
+    (category_id, product_id) [pk]
+  }
+}
