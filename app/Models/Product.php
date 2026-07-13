@@ -11,7 +11,6 @@ class Product extends Model
 
     protected $fillable = [
         'shop_id',
-        'category_id',
         'name',
         'slug',
         'description',
@@ -28,9 +27,9 @@ class Product extends Model
         return $this->belongsTo(Shop::class);
     }
 
-    public function category()
+    public function categories()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsToMany(Category::class);
     }
 
     public function variants()

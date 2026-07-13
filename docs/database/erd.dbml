@@ -150,3 +150,17 @@ Table category_product {
     (category_id, product_id) [pk]
   }
 }
+
+Table daily_sales_summaries {
+  id bigint [pk, increment]
+  shop_id bigint [not null, ref: > shops.id]
+  date date [not null]
+  total_sales decimal(15,2) [not null, default: 0.00]
+  total_orders integer [not null, default: 0]
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (shop_id, date) [unique]
+  }
+}
