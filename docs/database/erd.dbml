@@ -164,3 +164,12 @@ Table daily_sales_summaries {
     (shop_id, date) [unique]
   }
 }
+
+Table wishlists {
+  user_id bigint [not null, ref: > users.id]
+  product_id bigint [not null, ref: > products.id]
+
+  indexes {
+    (user_id, product_id) [pk]
+  }
+}

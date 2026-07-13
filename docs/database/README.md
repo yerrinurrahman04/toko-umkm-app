@@ -59,3 +59,10 @@ Berkas ini memuat penjelasan hubungan keterkaitan (relationships) antar tabel ba
 
 ### order_items ➔ reviews (1-to-1)
 *   Satu ulasan (`reviews`) merujuk secara unik pada satu baris transaksi item belanja (`reviews.order_item_id`) untuk memastikan pembeli hanya dapat memberikan ulasan satu kali per item pesanan selesai.
+
+---
+
+## 5. Tabel Wishlist Belanja
+
+### users ➔ products (Many-to-Many / belongsToMany via wishlists)
+*   Menghubungkan `users` (pembeli) dengan `products` yang disukai/disimpan. Hubungan ini diatur oleh tabel pivot **`wishlists`** dengan foreign key `user_id` dan `product_id` serta composite primary key untuk mencegah duplikasi data wishlist.

@@ -269,6 +269,8 @@ Order "1" -- "1" Shipment : shipped by
 OrderItem "0..*" -- "1" Product : points to
 OrderItem "0..*" -- "0..1" ProductVariant : uses
 Review "0..*" -- "1" User : written by (buyer)
+User "0..*" -- "0..*" Product : wishlists (Many-to-Many)
+
 
 ' Controller Dependencies on Models (simplification)
 RegisteredUserController ..> User : creates

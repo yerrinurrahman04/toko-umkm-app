@@ -49,4 +49,9 @@ class Product extends Model
         }
         return $this->price;
     }
+
+    public function wishedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'wishlists');
+    }
 }
