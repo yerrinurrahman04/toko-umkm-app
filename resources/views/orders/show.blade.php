@@ -117,7 +117,9 @@
                 @foreach($order->items as $item)
                     <div class="flex justify-between items-center text-sm">
                         <div>
-                            <strong class="text-slate-800">{{ $item->product->name }}</strong>
+                            <a href="{{ route('products.show', $item->product->slug) }}" class="hover:text-indigo-600 transition-colors">
+                                <strong class="text-slate-800">{{ $item->product->name }}</strong>
+                            </a>
                             @if($item->variant)
                                 <span class="text-xs text-slate-400 block">Varian: {{ $item->variant->name }}</span>
                             @endif

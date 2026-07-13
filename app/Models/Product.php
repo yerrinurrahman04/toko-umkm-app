@@ -54,4 +54,34 @@ class Product extends Model
     {
         return $this->belongsToMany(User::class, 'wishlists');
     }
+
+    public function scopeSearch($query, $search)
+    {
+        if (!empty($search)) {
+            return $query->where('name', 'like', '%' . $search . '%')
+                         ->orWhere('description', 'like', '%' . $search . '%');
+        }
+        return $query;
+    }
+
+    public function scopeCategory($query, $category)
+    {
+        if (!empty($category)) {
+            return $query->whereHas('categories', function ($q) use ($category) {
+                $q->where('slug', $category)->orWhere('categories.id', $category);
+            });
+        }
+        return $query;
+    }
+
+    public function scopePriceBetween($query, $minPrice, $maxPrice)
+    {
+        if ($minPrice !== null && $minPrice !== '') {
+            $query->where('price', '>=', $minPrice);
+        }
+        if ($maxPrice !== null && $maxPrice !== '') {
+            $query->where('price', '<=', $maxPrice);
+        }
+        return $query;
+    }
 }

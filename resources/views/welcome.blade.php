@@ -117,6 +117,40 @@
             </div>
         @endif
 
+        <!-- Filter Card -->
+        <div class="glass-card rounded-[24px] p-6 mb-8 border border-slate-100/50 shadow-sm">
+            <form action="{{ route('catalog') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                @if(request('category'))
+                    <input type="hidden" name="category" value="{{ request('category') }}">
+                @endif
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Cari Produk</label>
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Nama atau deskripsi produk..."
+                           class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Harga Minimum (Rp)</label>
+                    <input type="number" name="min_price" value="{{ request('min_price') }}" placeholder="Contoh: 10000"
+                           class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Harga Maksimum (Rp)</label>
+                    <input type="number" name="max_price" value="{{ request('max_price') }}" placeholder="Contoh: 500000"
+                           class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-6 py-3 rounded-2xl transition-all shadow-md">
+                        Terapkan Filter
+                    </button>
+                    @if(request('search') || request('min_price') || request('max_price') || request('category'))
+                        <a href="{{ route('catalog') }}" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm px-4 py-3 rounded-2xl transition-all flex items-center justify-center">
+                            Reset
+                        </a>
+                    @endif
+                </div>
+            </form>
+        </div>
+
         <!-- Product Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             @forelse($products as $product)

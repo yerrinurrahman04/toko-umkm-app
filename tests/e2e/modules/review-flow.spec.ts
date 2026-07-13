@@ -14,36 +14,33 @@ test.describe('Buyer Product Review and Admin Moderation Flow', () => {
     await buyerPage.goto('/buyer/dashboard');
     await expect(buyerPage).toHaveURL(/\/buyer\/dashboard/);
 
-    // Get all rows representing a completed ("Selesai") order
     const completedOrderRows = buyerPage.locator('tr', { hasText: 'Selesai' });
     const count = await completedOrderRows.count();
     
     let reviewFormFound = false;
     let productName = '';
+    let productUrl: string | null = '';
     let commentText = 'Ulasan E2E Kualitas Luar Biasa ' + Math.floor(Math.random() * 10000);
 
     for (let i = 0; i < count; i++) {
-      // Click Detail on the i-th completed order
       const row = completedOrderRows.nth(i);
       await row.locator('text=Detail').click();
       await buyerPage.waitForLoadState('networkidle');
 
-      // Check if the review form is present
       const reviewForm = buyerPage.locator('form[action*="reviews"]').first();
       if (await reviewForm.isVisible()) {
         reviewFormFound = true;
-        productName = await buyerPage.locator('strong.text-slate-800').first().innerText();
+        const productLink = buyerPage.locator('a[href*="/products/"]').first();
+        productName = await productLink.locator('strong').innerText();
+        productUrl = await productLink.getAttribute('href');
         
-        // Fill the review form
         await reviewForm.locator('select[name="rating"]').selectOption('5');
         await reviewForm.locator('textarea[name="comment"]').fill(commentText);
         await reviewForm.locator('button[type="submit"]').click();
         
-        // Verify flash message
         await expect(buyerPage.locator('body')).toContainText('Ulasan berhasil dikirim! Menunggu moderasi admin.');
         break;
       } else {
-        // Go back to the dashboard to check the next one
         await buyerPage.goto('/buyer/dashboard');
       }
     }
@@ -73,13 +70,7 @@ test.describe('Buyer Product Review and Admin Moderation Flow', () => {
     const guestContext = await browser.newContext();
     const guestPage = await guestContext.newPage();
     
-    await guestPage.goto('/');
-    // Search for the product to bypass pagination limits
-    const searchInput = guestPage.locator('input[name="search"]').first();
-    await searchInput.fill(productName);
-    await searchInput.press('Enter');
-    
-    await guestPage.click(`text=${productName}`);
+    await guestPage.goto(productUrl!);
     await expect(guestPage.locator('body')).toContainText(commentText);
     await guestContext.close();
   });

@@ -13,28 +13,17 @@ use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a general catalog of all products (for Homepage).
-     */
     public function catalog(Request $request)
     {
         $categories = Category::all();
-        $query = Product::query();
-
-        // Search query
-        if ($request->has('search') && !empty($request->search)) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('description', 'like', '%' . $request->search . '%');
-        }
-
-        // Category filter
-        if ($request->has('category') && !empty($request->category)) {
-            $query->whereHas('categories', function ($q) use ($request) {
-                $q->where('slug', $request->category);
-            });
-        }
-
-        $products = $query->with(['shop', 'categories'])->latest()->paginate(12);
+        
+        $products = Product::query()
+            ->search($request->search)
+            ->category($request->category)
+            ->priceBetween($request->min_price, $request->max_price)
+            ->with(['shop', 'categories'])
+            ->latest()
+            ->paginate(12);
 
         return view('welcome', compact('products', 'categories'));
     }
