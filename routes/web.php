@@ -75,7 +75,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/seller/shop', [ShopController::class, 'update'])->name('seller.shop.update');
 
         // Products CRUD
-        Route::resource('/seller/products', ProductController::class)->names([
+        Route::resource('/seller/products', ProductController::class)->except(['show'])->names([
             'index' => 'seller.products.index',
             'create' => 'seller.products.create',
             'store' => 'seller.products.store',
