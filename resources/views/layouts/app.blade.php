@@ -81,6 +81,13 @@
                 <!-- Main Content Area -->
                 <main class="flex-1 flex flex-col gap-6">
                     
+                    <!-- Page Heading -->
+                    @if (isset($header))
+                        <div class="bg-white border border-slate-100 shadow-sm rounded-3xl p-6">
+                            {{ $header }}
+                        </div>
+                    @endif
+
                     <!-- Flash Messages / Notifications -->
                     @if(session('success'))
                         <div class="bg-emerald-50 border border-emerald-100 text-emerald-800 p-4 rounded-2xl text-sm font-semibold flex items-center gap-2">
