@@ -7,6 +7,8 @@ use App\Models\ProductVariant;
 use App\Models\Category;
 use App\Models\Shop;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -77,22 +79,12 @@ class ProductController extends Controller
     /**
      * Store new product.
      */
-    public function store(Request $request)
+    public function store(StoreProductRequest $request)
     {
         $shop = auth()->user()->shop;
         if (!$shop) {
             return redirect()->route('seller.dashboard');
         }
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'discount_percentage' => 'required|numeric|between:0,100',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
-        ]);
 
         $data = $request->only(['name', 'price', 'stock', 'discount_percentage', 'description']);
         $data['shop_id'] = $shop->id;
@@ -121,23 +113,10 @@ class ProductController extends Controller
         return view('seller.products.edit', compact('product', 'categories'));
     }
 
-    /**
-     * Update product details.
-     */
-    public function update(Request $request, $id)
+    public function update(UpdateProductRequest $request, $id)
     {
         $shop = auth()->user()->shop;
         $product = Product::where('id', $id)->where('shop_id', $shop->id)->firstOrFail();
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'discount_percentage' => 'required|numeric|between:0,100',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
-        ]);
 
         $data = $request->only(['name', 'price', 'stock', 'discount_percentage', 'description']);
         $data['slug'] = Str::slug($request->name) . '-' . rand(100, 999);
