@@ -16,3 +16,10 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Agent credentials
+.agent/skills/laravel-setup/credentials
