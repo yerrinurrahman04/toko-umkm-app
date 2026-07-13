@@ -31,7 +31,7 @@
                         <label for="category_id" class="block text-xs font-bold text-slate-500 mb-2">Kategori Produk</label>
                         <select id="category_id" name="category_id" required class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all">
                             @foreach($categories as $cat)
-                                <option value="{{ $cat->id }}" {{ $product->category_id === $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                                <option value="{{ $cat->id }}" {{ $product->categories->contains($cat->id) ? 'selected' : '' }}>{{ $cat->name }}</option>
                             @endforeach
                         </select>
                     </div>

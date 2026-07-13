@@ -50,7 +50,7 @@
 
             <!-- Right: Product Info & Buy Form -->
             <div class="flex flex-col">
-                <span class="bg-indigo-50 text-indigo-700 text-xs font-semibold px-3 py-1 rounded-full w-max uppercase tracking-wider">{{ $product->category->name }}</span>
+                <span class="bg-indigo-50 text-indigo-700 text-xs font-semibold px-3 py-1 rounded-full w-max uppercase tracking-wider">{{ $product->categories->first()->name ?? 'Umum' }}</span>
                 <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800 mt-4 leading-tight">{{ $product->name }}</h1>
                 
                 <!-- Shop badge -->

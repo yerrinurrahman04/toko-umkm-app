@@ -27,13 +27,12 @@ class ProductController extends Controller
 
         // Category filter
         if ($request->has('category') && !empty($request->category)) {
-            $category = Category::where('slug', $request->category)->first();
-            if ($category) {
-                $query->where('category_id', $category->id);
-            }
+            $query->whereHas('categories', function ($q) use ($request) {
+                $q->where('slug', $request->category);
+            });
         }
 
-        $products = $query->with(['shop', 'category'])->latest()->paginate(12);
+        $products = $query->with(['shop', 'categories'])->latest()->paginate(12);
 
         return view('welcome', compact('products', 'categories'));
     }
@@ -43,7 +42,7 @@ class ProductController extends Controller
      */
     public function show($slug)
     {
-        $product = Product::where('slug', $slug)->with(['shop', 'category', 'variants', 'reviews.buyer'])->firstOrFail();
+        $product = Product::where('slug', $slug)->with(['shop', 'categories', 'variants', 'reviews.buyer'])->firstOrFail();
         
         // Only load moderated reviews
         $reviews = $product->reviews()->where('is_moderated', true)->latest()->get();
@@ -62,7 +61,7 @@ class ProductController extends Controller
             return redirect()->route('seller.dashboard');
         }
 
-        $products = Product::where('shop_id', $shop->id)->with('category')->latest()->get();
+        $products = Product::where('shop_id', $shop->id)->with('categories')->latest()->get();
         return view('seller.products.index', compact('products'));
     }
 
@@ -95,7 +94,7 @@ class ProductController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
 
-        $data = $request->only(['name', 'category_id', 'price', 'stock', 'discount_percentage', 'description']);
+        $data = $request->only(['name', 'price', 'stock', 'discount_percentage', 'description']);
         $data['shop_id'] = $shop->id;
         $data['slug'] = Str::slug($request->name) . '-' . rand(100, 999);
 
@@ -104,7 +103,8 @@ class ProductController extends Controller
             $data['image'] = $imagePath;
         }
 
-        Product::create($data);
+        $product = Product::create($data);
+        $product->categories()->sync([$request->category_id]);
 
         return redirect()->route('seller.products.index')->with('success', 'Produk berhasil ditambahkan!');
     }
@@ -139,7 +139,7 @@ class ProductController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
 
-        $data = $request->only(['name', 'category_id', 'price', 'stock', 'discount_percentage', 'description']);
+        $data = $request->only(['name', 'price', 'stock', 'discount_percentage', 'description']);
         $data['slug'] = Str::slug($request->name) . '-' . rand(100, 999);
 
         if ($request->hasFile('image')) {
@@ -148,6 +148,7 @@ class ProductController extends Controller
         }
 
         $product->update($data);
+        $product->categories()->sync([$request->category_id]);
 
         return redirect()->route('seller.products.index')->with('success', 'Produk berhasil diperbarui!');
     }

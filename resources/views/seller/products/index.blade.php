@@ -48,7 +48,7 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 font-bold text-slate-800">{{ $product->name }}</td>
-                                    <td class="px-6 py-4 font-semibold text-slate-500">{{ $product->category->name }}</td>
+                                    <td class="px-6 py-4 font-semibold text-slate-500">{{ $product->categories->first()->name ?? 'Umum' }}</td>
                                     <td class="px-6 py-4 font-extrabold text-slate-800">Rp{{ number_format($product->price, 0, ',', '.') }}</td>
                                     <td class="px-6 py-4">
                                         <span class="font-bold {{ $product->stock < 5 ? 'text-rose-600' : 'text-slate-600' }}">

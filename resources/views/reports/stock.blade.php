@@ -32,7 +32,7 @@
             @foreach($products as $index => $product)
                 <tr>
                     <td>{{ $index + 1 }}</td>
-                    <td>{{ $product->category->name }}</td>
+                    <td>{{ $product->categories->first()->name ?? 'Umum' }}</td>
                     <td><strong>{{ $product->name }}</strong></td>
                     <td>Rp{{ number_format($product->price, 0, ',', '.') }}</td>
                     <td>{{ $product->stock }}</td>

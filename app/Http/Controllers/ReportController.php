@@ -67,10 +67,10 @@ class ReportController extends Controller
             }
             $shopId = $shop->id;
             $shopName = $shop->name;
-            $products = Product::where('shop_id', $shopId)->with(['category', 'variants'])->get();
+            $products = Product::where('shop_id', $shopId)->with(['categories', 'variants'])->get();
         } else {
             // Admin can view all
-            $products = Product::with(['category', 'shop', 'variants'])->get();
+            $products = Product::with(['categories', 'shop', 'variants'])->get();
         }
 
         $pdf = Pdf::loadView('reports.stock', compact('products', 'shopName'));

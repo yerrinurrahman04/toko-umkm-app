@@ -140,7 +140,7 @@
                     </div>
 
                     <div class="p-5 flex flex-col flex-1">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ $product->category->name }}</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ $product->categories->first()->name ?? 'Umum' }}</span>
                         <h3 class="font-bold text-slate-800 text-sm mt-1 line-clamp-2 min-h-[40px]">
                             <a href="{{ route('products.show', $product->slug) }}" class="hover:text-indigo-600 transition-colors">
                                 {{ $product->name }}
