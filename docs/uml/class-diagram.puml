@@ -1,0 +1,288 @@
+@startuml Class Diagram TokoKita
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName "Outfit"
+skinparam ArrowColor #4f46e5
+skinparam ClassBorderColor #7c3aed
+skinparam ClassBackgroundColor #f3f4f6
+
+package "Models" {
+    class User {
+        +int id
+        +string name
+        +string email
+        +string password
+        +string role
+        +datetime email_verified_at
+        +shop()
+        +isAdmin(): bool
+        +isSeller(): bool
+        +isBuyer(): bool
+    }
+
+    class Shop {
+        +int id
+        +int user_id
+        +string name
+        +string slug
+        +string description
+        +string logo
+        +string address
+        +string operating_hours
+        +string shipping_area
+        +user()
+        +products()
+        +orders()
+    }
+
+    class Category {
+        +int id
+        +string name
+        +string slug
+        +string description
+        +products()
+    }
+
+    class Product {
+        +int id
+        +int shop_id
+        +int category_id
+        +string name
+        +string slug
+        +string description
+        +string image
+        +double price
+        +int stock
+        +double discount_percentage
+        +shop()
+        +category()
+        +variants()
+        +reviews()
+        +getDiscountedPriceAttribute(): double
+    }
+
+    class ProductVariant {
+        +int id
+        +int product_id
+        +string name
+        +double price
+        +int stock
+        +product()
+    }
+
+    class Voucher {
+        +int id
+        +string code
+        +string type
+        +double value
+        +double min_spend
+        +date start_date
+        +date end_date
+        +bool is_active
+        +isValid(double amount): bool
+        +calculateDiscount(double amount): double
+    }
+
+    class Order {
+        +int id
+        +int buyer_id
+        +int shop_id
+        +int voucher_id
+        +string order_number
+        +double total_amount
+        +double discount_amount
+        +double shipping_cost
+        +double final_amount
+        +string status
+        +string shipping_address
+        +string notes
+        +buyer()
+        +shop()
+        +voucher()
+        +items()
+        +payment()
+        +shipment()
+    }
+
+    class OrderItem {
+        +int id
+        +int order_id
+        +int product_id
+        +int product_variant_id
+        +double price
+        +int quantity
+        +double discount_amount
+        +double total
+        +order()
+        +product()
+        +variant()
+        +review()
+    }
+
+    class Payment {
+        +int id
+        +int order_id
+        +double amount
+        +string payment_method
+        +string receipt_image
+        +string status
+        +string notes
+        +datetime verified_at
+        +order()
+    }
+
+    class Shipment {
+        +int id
+        +int order_id
+        +string courier_name
+        +string tracking_number
+        +string status
+        +double shipping_cost
+        +string estimation_time
+        +datetime shipped_at
+        +datetime delivered_at
+        +order()
+    }
+
+    class Review {
+        +int id
+        +int product_id
+        +int buyer_id
+        +int order_item_id
+        +int rating
+        +string comment
+        +bool is_moderated
+        +product()
+        +buyer()
+        +orderItem()
+    }
+}
+
+package "Controllers" {
+    class RegisteredUserController {
+        +create(): View
+        +store(Request request): RedirectResponse
+    }
+
+    class AuthenticatedSessionController {
+        +create(): View
+        +store(Request request): RedirectResponse
+        +destroy(Request request): RedirectResponse
+    }
+
+    class ShopController {
+        +sellerDashboard(): View
+        +edit(): View
+        +update(Request request): RedirectResponse
+        +show(string slug): View
+    }
+
+    class ProductController {
+        +catalog(Request request): View
+        +show(string slug): View
+        +index(): View
+        +create(): View
+        +store(Request request): RedirectResponse
+        +edit(int id): View
+        +update(Request request, int id): RedirectResponse
+        +destroy(int id): RedirectResponse
+        +addVariant(Request request, int productId): RedirectResponse
+        +deleteVariant(int id): RedirectResponse
+    }
+
+    class CartController {
+        +index(): View
+        +add(Request request, int id): RedirectResponse
+        +update(Request request, string key): RedirectResponse
+        +remove(string key): RedirectResponse
+        +applyVoucher(Request request): RedirectResponse
+        +checkout(): View
+    }
+
+    class OrderController {
+        +store(Request request): RedirectResponse
+        +buyerDashboard(): View
+        +show(int id): View
+        +cancel(int id): RedirectResponse
+        +returnOrder(int id): RedirectResponse
+        +sellerOrders(Request request): View
+        +processOrder(int id): RedirectResponse
+        +shipOrder(Request request, int id): RedirectResponse
+        +completeOrder(int id): RedirectResponse
+    }
+
+    class OrderService {
+        +createOrder(array cart, string address, string courier, string notes): Order
+    }
+
+    class PaymentController {
+        +create(int orderId): View
+        +store(Request request, int orderId): RedirectResponse
+        +verifyPayment(Request request, int id): RedirectResponse
+    }
+
+    class VoucherController {
+        +index(): View
+        +create(): View
+        +store(Request request): RedirectResponse
+        +edit(int id): View
+        +update(Request request, int id): RedirectResponse
+        +destroy(int id): RedirectResponse
+    }
+
+    class ReviewController {
+        +store(Request request): RedirectResponse
+    }
+
+    class AdminController {
+        +dashboard(): View
+        +users(): View
+        +updateUserRole(Request request, int id): RedirectResponse
+        +reviews(): View
+        +moderateReview(Request request, int id): RedirectResponse
+    }
+
+    class ReportController {
+        +invoicePdf(int id): Response
+        +suratJalanPdf(int id): Response
+        +stockPdf(): Response
+        +stockExcel(): BinaryFileResponse
+        +salesRecapExcel(): BinaryFileResponse
+        +ordersBuyersExcel(): BinaryFileResponse
+    }
+}
+
+' Relations between Models
+User "1" -- "0..1" Shop : has
+Shop "1" -- "0..*" Product : owns
+Category "1" -- "0..*" Product : categorizes
+Product "1" -- "0..*" ProductVariant : has
+Product "1" -- "0..*" Review : receives
+User "1" -- "0..*" Order : places (buyer)
+Shop "1" -- "0..*" Order : receives
+Voucher "1" -- "0..*" Order : applied on
+Order "1" -- "1..*" OrderItem : contains
+OrderItem "0..1" -- "0..1" Review : reviewed by
+Order "1" -- "0..1" Payment : paid by
+Order "1" -- "1" Shipment : shipped by
+OrderItem "0..*" -- "1" Product : points to
+OrderItem "0..*" -- "0..1" ProductVariant : uses
+Review "0..*" -- "1" User : written by (buyer)
+
+' Controller Dependencies on Models (simplification)
+RegisteredUserController ..> User : creates
+AuthenticatedSessionController ..> User : authenticates
+ShopController ..> Shop : manages
+ProductController ..> Product : manages
+CartController ..> Voucher : validates
+OrderController ..> OrderService : uses
+OrderService ..> Order : creates
+PaymentController ..> Payment : manages
+VoucherController ..> Voucher : manages
+ReviewController ..> Review : creates
+AdminController ..> User : updates
+AdminController ..> Review : moderates
+ReportController ..> Order : prints
+
+@enduml

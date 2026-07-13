@@ -1,0 +1,42 @@
+@startuml Activity Register and Auth Flow
+
+|Pengguna Umum|
+start
+:Mengakses Halaman Registrasi / Login;
+if (Sudah memiliki akun?) then (tidak)
+    :Mengisi Formulir Pendaftaran
+    (Nama, Email, Sandi, Peran);
+    :Memilih Peran (Pembeli atau Penjual);
+    :Mengirim Formulir (Submit);
+    |Sistem TokoKita|
+    :Memvalidasi keunikan Email & Form Data;
+    if (Validasi sukses?) then (ya)
+        :Menyimpan data pengguna baru ke DB;
+        :Mengalihkan ke halaman Login;
+    else (tidak)
+        :Menampilkan pesan error validasi;
+        stop
+    endif
+else (ya)
+endif
+
+|Pengguna Umum|
+:Mengisi kredensial Login (Email & Sandi);
+:Mengklik tombol Masuk;
+|Sistem TokoKita|
+:Mengecek kredensial di database;
+if (Kredensial cocok?) then (ya)
+    :Membuat sesi aktif (Session Auth);
+    if (Peran Pengguna (Role)?) then (Admin)
+        :Mengarahkan ke Dashboard Admin;
+    elseif (Peran Pengguna (Role)?) then (Seller)
+        :Mengarahkan ke Dashboard Penjual;
+    else (Buyer)
+        :Mengarahkan ke Halaman Utama / Buyer;
+    endif
+else (tidak)
+    :Menampilkan pesan kegagalan login;
+endif
+stop
+
+@enduml

@@ -1,0 +1,26 @@
+@startuml Activity Review Moderation Flow
+
+|Pembeli (Buyer)|
+start
+:Membuka detail pesanan selesai ('Completed');
+:Mengisi rating bintang (1-5) dan komentar tertulis;
+:Mengklik Kirim Ulasan;
+|Sistem TokoKita|
+:Menyimpan ulasan dengan status 'Pending Moderation' (belum terbit);
+|Sistem Admin|
+:Mengakses halaman Moderasi Ulasan;
+:Membaca teks komentar pembeli;
+if (Komentar sopan, relevan & bukan spam?) then (ya)
+    :Mengklik tombol Setujui (Approve);
+    |Sistem TokoKita|
+    :Mengubah status ulasan menjadi disetujui;
+    :Ulasan tampil publik di halaman katalog produk;
+else (tidak)
+    |Sistem Admin|
+    :Mengklik tombol Hapus (Delete);
+    |Sistem TokoKita|
+    :Menghapus ulasan dari database;
+endif
+stop
+
+@enduml

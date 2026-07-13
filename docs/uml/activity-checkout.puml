@@ -1,0 +1,36 @@
+@startuml Activity Checkout Flow
+
+|Pembeli (Buyer)|
+start
+:Memilih Produk dan Kategori;
+:Memasukkan kuantitas / varian produk;
+:Mengklik Tambah ke Keranjang;
+|Sistem TokoKita|
+:Menyimpan item produk ke Sesi Keranjang;
+|Pembeli (Buyer)|
+:Mengakses halaman Keranjang Belanja;
+if (Menggunakan kode voucher?) then (ya)
+    :Memasukkan kode voucher;
+    |Sistem TokoKita|
+    :Memvalidasi kode voucher (masa aktif & min spend);
+    if (Voucher valid?) then (ya)
+        :Menerapkan potongan diskon pada subtotal;
+    else (tidak)
+        :Menampilkan pesan error voucher;
+    endif
+else (tidak)
+endif
+
+|Pembeli (Buyer)|
+:Mengklik Lanjut ke Checkout;
+:Mengisi Alamat Lengkap Pengiriman;
+:Memilih Metode Pengiriman (Kurir + Tarif);
+:Mengonfirmasi dan Buat Pesanan;
+|Sistem TokoKita|
+:Mengunci stok barang (Stock Locking);
+:Membuat invoice order baru (status: pending);
+:Mengosongkan Keranjang Sesi;
+:Mengarahkan ke halaman instruksi pembayaran;
+stop
+
+@enduml

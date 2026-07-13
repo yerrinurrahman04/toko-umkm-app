@@ -1,0 +1,38 @@
+@startuml Sequence Review Moderation Flow
+
+actor "Pembeli (Buyer)" as Buyer
+actor "Sistem Admin" as Admin
+boundary "View Reviews/Moderation" as View
+control "ReviewController" as ReviewCtrl
+control "AdminController" as AdminCtrl
+database "Database (Review Model)" as DB
+
+== Proses Submit Ulasan (Buyer) ==
+Buyer -> View : Memasukkan Nilai Rating Bintang & Komentar Ulasan
+Buyer -> View : Mengklik Kirim Ulasan
+View -> ReviewCtrl : POST /reviews (order_item_id, rating, comment)
+activate ReviewCtrl
+ReviewCtrl -> DB : Review::create() (status is_moderated: false)
+activate DB
+deactivate DB
+ReviewCtrl --> View : Redirect Back dengan Info Sukses (Menunggu Moderasi)
+deactivate ReviewCtrl
+
+== Proses Moderasi Ulasan (Admin) ==
+Admin -> View : Mengklik Aksi Moderasi (Approve / Delete)
+View -> AdminCtrl : POST /admin/reviews/{id}/moderate (action)
+activate AdminCtrl
+alt action == approve
+    AdminCtrl -> DB : Review::update(is_moderated: true)
+    activate DB
+    deactivate DB
+    AdminCtrl --> View : Redirect Back dengan Success (Ulasan Publik Terbit)
+else action == delete
+    AdminCtrl -> DB : Review::delete()
+    activate DB
+    deactivate DB
+    AdminCtrl --> View : Redirect Back dengan Success (Ulasan Dihapus)
+end
+deactivate AdminCtrl
+
+@enduml

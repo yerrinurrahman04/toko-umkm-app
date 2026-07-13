@@ -1,0 +1,43 @@
+@startuml Sequence Payment Verification Flow
+
+actor "Pembeli (Buyer)" as Buyer
+actor "Penjual (Seller)" as Seller
+boundary "View Payments/Orders" as View
+control "PaymentController" as PaymentCtrl
+database "Database (Payment, Order Models)" as DB
+
+== Proses Unggah Bukti Bayar (Buyer) ==
+Buyer -> View : Mengisi Jumlah Transfer & Unggah Foto Struk
+Buyer -> View : Mengklik Kirim Bukti Pembayaran
+View -> PaymentCtrl : POST /payments/confirm/{order_id} (receipt_image, amount, method)
+activate PaymentCtrl
+PaymentCtrl -> DB : Payment::create() (status: pending)
+activate DB
+deactivate DB
+PaymentCtrl --> View : Redirect ke Dashboard dengan Info Menunggu Verifikasi
+deactivate PaymentCtrl
+
+== Proses Verifikasi Pembayaran (Seller) ==
+Seller -> View : Mengakses Daftar Pesanan & Klik Verifikasi Bukti
+View -> PaymentCtrl : POST /seller/payments/{id}/verify (status: approved/rejected, notes)
+activate PaymentCtrl
+alt Status == Approved
+    PaymentCtrl -> DB : Payment::update(status: approved, verified_at: now)
+    activate DB
+    deactivate DB
+    PaymentCtrl -> DB : Order::update(status: paid)
+    activate DB
+    deactivate DB
+    PaymentCtrl --> View : Redirect Back dengan Success (Pembayaran Disetujui)
+else Status == Rejected
+    PaymentCtrl -> DB : Payment::update(status: rejected)
+    activate DB
+    deactivate DB
+    PaymentCtrl -> DB : Order::update(status: pending)
+    activate DB
+    deactivate DB
+    PaymentCtrl --> View : Redirect Back dengan Warning (Pembayaran Ditolak)
+end
+deactivate PaymentCtrl
+
+@enduml

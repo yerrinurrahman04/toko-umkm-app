@@ -1,0 +1,45 @@
+@startuml Sequence Order Shipping Flow
+
+actor "Penjual (Seller)" as Seller
+actor "Pembeli (Buyer)" as Buyer
+boundary "View Orders" as View
+control "OrderController" as OrderCtrl
+database "Database (Order, Shipment Models)" as DB
+
+== Proses Pengemasan (Seller) ==
+Seller -> View : Mengklik Proses Order (Pada pesanan status 'Paid')
+View -> OrderCtrl : POST /seller/orders/{id}/process
+activate OrderCtrl
+OrderCtrl -> DB : Order::update(status: processed)
+activate DB
+deactivate DB
+OrderCtrl --> View : Redirect Back dengan Success (Order Diproses)
+deactivate OrderCtrl
+
+== Proses Pengiriman & Input Resi (Seller) ==
+Seller -> View : Memasukkan Nomor Resi Ekspedisi & Klik Kirim
+View -> OrderCtrl : POST /seller/orders/{id}/ship (tracking_number)
+activate OrderCtrl
+OrderCtrl -> DB : Order::update(status: shipping)
+activate DB
+deactivate DB
+OrderCtrl -> DB : Shipment::update(tracking_number, status: shipped, shipped_at: now)
+activate DB
+deactivate DB
+OrderCtrl --> View : Redirect Back dengan Success (Pesanan Dikirim)
+deactivate OrderCtrl
+
+== Konfirmasi Penerimaan (Buyer) ==
+Buyer -> View : Mengklik Terima Barang (Pada pesanan status 'Shipping')
+View -> OrderCtrl : POST /seller/orders/{id}/complete
+activate OrderCtrl
+OrderCtrl -> DB : Order::update(status: completed)
+activate DB
+deactivate DB
+OrderCtrl -> DB : Shipment::update(status: delivered, delivered_at: now)
+activate DB
+deactivate DB
+OrderCtrl --> View : Redirect Back dengan Success (Transaksi Selesai)
+deactivate OrderCtrl
+
+@enduml

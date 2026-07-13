@@ -1,0 +1,26 @@
+@startuml Activity Order Shipping Flow
+
+|Penjual (Seller)|
+start
+:Membuka daftar pesanan berstatus 'Paid';
+:Mengemas produk belanjaan pembeli;
+:Mengklik tombol Proses Order;
+|Sistem TokoKita|
+:Mengubah status pesanan menjadi 'Processed';
+|Penjual (Seller)|
+:Mengirimkan barang ke ekspedisi terpilih;
+:Memperoleh nomor resi pengiriman;
+:Memasukkan nomor resi pada sistem;
+:Mengklik tombol Kirim Pesanan;
+|Sistem TokoKita|
+:Menyimpan nomor resi pengiriman;
+:Mengubah status pesanan menjadi 'Shipping';
+|Pembeli (Buyer)|
+:Menerima kiriman barang;
+:Mengklik tombol Konfirmasi Penerimaan (Selesai);
+|Sistem TokoKita|
+:Mengubah status pesanan menjadi 'Completed';
+:Mencatat tanggal penyelesaian untuk laporan keuangan;
+stop
+
+@enduml

@@ -1,0 +1,56 @@
+@startuml Sequence Checkout Flow
+
+actor "Pembeli (Buyer)" as Buyer
+boundary "View Cart/Checkout" as View
+control "CartController" as CartCtrl
+control "OrderController" as OrderCtrl
+control "OrderService" as OrderServ
+database "Database (Voucher, Product, Order Models)" as DB
+
+== Proses Penerapan Voucher ==
+Buyer -> View : Memasukkan Kode Voucher
+Buyer -> View : Mengklik Pakai
+View -> CartCtrl : POST /cart/voucher (code)
+activate CartCtrl
+CartCtrl -> DB : Voucher::where('code', code)->first()
+activate DB
+DB --> CartCtrl : Voucher Object
+deactivate DB
+alt Voucher Tidak Valid / Expired / Kurang Min Spend
+    CartCtrl --> View : Redirect Back dengan Error Voucher
+else Voucher Valid
+    CartCtrl -> CartCtrl : Simpan Voucher ke Session
+    CartCtrl --> View : Terapkan Potongan Diskon pada Subtotal
+end
+deactivate CartCtrl
+
+== Proses Checkout dan Pembuatan Pesanan ==
+Buyer -> View : Mengisi Alamat & Pilih Kurir
+Buyer -> View : Mengklik Buat Pesanan
+View -> OrderCtrl : POST /orders (address, courier, notes)
+activate OrderCtrl
+OrderCtrl -> OrderServ : createOrder(cart, address, courier, notes)
+activate OrderServ
+OrderServ -> DB : Check Product & Variant Stock
+activate DB
+DB --> OrderServ : Stock Status
+deactivate DB
+alt Stok Habis / Kurang
+    OrderServ --> OrderCtrl : Throw Exception (Stok Kurang)
+    OrderCtrl --> View : Redirect Back dengan Error Stok
+else Stok Tersedia
+    OrderServ -> DB : Decrement Product Stock (Stock Locking)
+    activate DB
+    deactivate DB
+    OrderServ -> DB : Order::create(), OrderItem::create(), Shipment::create()
+    activate DB
+    DB --> OrderServ : Order Object Created
+    deactivate DB
+    OrderServ --> OrderCtrl : Order Object
+    OrderCtrl -> OrderCtrl : Clear Cart & Voucher Session
+    OrderCtrl --> View : Redirect ke /payments/confirm/{id} (Success)
+end
+deactivate OrderServ
+deactivate OrderCtrl
+
+@enduml

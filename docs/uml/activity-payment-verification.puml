@@ -1,0 +1,28 @@
+@startuml Activity Payment Verification Flow
+
+|Pembeli (Buyer)|
+start
+:Membuka detail pesanan berstatus 'Pending';
+:Melakukan transfer manual sesuai nominal invoice;
+:Mengunggah Bukti Pembayaran (struk/screenshot);
+:Submit bukti transfer;
+|Sistem TokoKita|
+:Menyimpan bukti pembayaran (status: pending verification);
+|Penjual (Seller)|
+:Mengakses daftar Pesanan Masuk;
+:Memeriksa bukti transfer yang diunggah;
+if (Uang masuk cocok & struk valid?) then (ya)
+    :Menyetujui verifikasi pembayaran;
+    |Sistem TokoKita|
+    :Mengubah status pembayaran menjadi 'Approved';
+    :Mengubah status pesanan menjadi 'Paid';
+else (tidak)
+    |Penjual (Seller)|
+    :Menolak verifikasi pembayaran & beri catatan;
+    |Sistem TokoKita|
+    :Mengubah status pembayaran menjadi 'Rejected';
+    :Status pesanan kembali ke 'Pending';
+endif
+stop
+
+@enduml

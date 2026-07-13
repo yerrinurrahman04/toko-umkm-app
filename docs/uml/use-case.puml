@@ -1,0 +1,87 @@
+@startuml Use Case Diagram TokoKita
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName "Outfit"
+skinparam ArrowColor #4f46e5
+skinparam ActorBorderColor #4f46e5
+skinparam UseCaseBorderColor #7c3aed
+skinparam UseCaseBackgroundColor #f3f4f6
+
+actor "Pengguna Umum" as Guest
+actor "Pembeli (Buyer)" as Buyer
+actor "Penjual (Seller/UMKM)" as Seller
+actor "Sistem Admin" as Admin
+
+Guest <|-- Buyer
+Guest <|-- Seller
+
+rectangle "Sistem TokoKita (E-Commerce UMKM)" {
+    
+    ' Guest Use Cases
+    usecase "Mendaftar Akun baru" as UC_Register
+    usecase "Masuk / Keluar Sistem" as UC_Auth
+    usecase "Melihat Katalog Produk" as UC_ViewCatalog
+    usecase "Mencari Produk & Filter Kategori" as UC_SearchCatalog
+    
+    ' Buyer Use Cases
+    usecase "Mengelola Keranjang Belanja" as UC_ManageCart
+    usecase "Menggunakan Kode Voucher" as UC_ApplyVoucher
+    usecase "Melakukan Checkout Pesanan" as UC_Checkout
+    usecase "Mengunggah Bukti Pembayaran" as UC_ConfirmPayment
+    usecase "Melacak Status Pengiriman" as UC_TrackOrder
+    usecase "Mengonfirmasi Barang Diterima" as UC_CompleteOrderBuyer
+    usecase "Mengajukan Retur Barang" as UC_ReturnOrder
+    usecase "Memberikan Rating & Ulasan" as UC_SubmitReview
+    
+    ' Seller Use Cases
+    usecase "Mengelola Profil Toko" as UC_ManageShop
+    usecase "Mengelola Produk & Varian Harga" as UC_ManageProducts
+    usecase "Mengelola Voucher Promosi" as UC_ManageVouchers
+    usecase "Melihat Daftar Pesanan Masuk" as UC_ViewOrdersSeller
+    usecase "Verifikasi Bukti Transfer Pembayaran" as UC_VerifyPayment
+    usecase "Memproses & Mengirim Pesanan" as UC_ShipOrder
+    usecase "Mengunduh Laporan Stok (PDF/Excel)" as UC_ExportStock
+    usecase "Mengunduh Rekap Penjualan (Excel)" as UC_ExportSales
+    usecase "Mengunduh Ekspor Data Pesanan & Pembeli (Excel)" as UC_ExportBuyers
+    
+    ' Admin Use Cases
+    usecase "Mengelola Pengguna & Peran (Role)" as UC_ManageUsers
+    usecase "Moderasi Konten Ulasan" as UC_ModerateReviews
+    usecase "Memantau KPI Dashboard Sistem" as UC_ViewKpiAdmin
+}
+
+' Guest Associations
+Guest --> UC_Register
+Guest --> UC_Auth
+Guest --> UC_ViewCatalog
+Guest --> UC_SearchCatalog
+
+' Buyer Associations
+Buyer --> UC_ManageCart
+Buyer --> UC_ApplyVoucher
+Buyer --> UC_Checkout
+Buyer --> UC_ConfirmPayment
+Buyer --> UC_TrackOrder
+Buyer --> UC_CompleteOrderBuyer
+Buyer --> UC_ReturnOrder
+Buyer --> UC_SubmitReview
+
+' Seller Associations
+Seller --> UC_ManageShop
+Seller --> UC_ManageProducts
+Seller --> UC_ManageVouchers
+Seller --> UC_ViewOrdersSeller
+Seller --> UC_VerifyPayment
+Seller --> UC_ShipOrder
+Seller --> UC_ExportStock
+Seller --> UC_ExportSales
+Seller --> UC_ExportBuyers
+
+' Admin Associations
+Admin --> UC_ManageUsers
+Admin --> UC_ModerateReviews
+Admin --> UC_ViewKpiAdmin
+
+@enduml

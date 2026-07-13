@@ -1,0 +1,50 @@
+@startuml Sequence Register and Auth Flow
+
+actor "Pengguna" as User
+boundary "View/Route Auth" as View
+control "RegisteredUserController" as RegisterCtrl
+control "AuthenticatedSessionController" as LoginCtrl
+database "Database (User Model)" as DB
+
+== Proses Registrasi Akun ==
+User -> View : Mengisi Formulir Registrasi (Nama, Email, Sandi, Peran)
+User -> View : Mengklik Submit
+View -> RegisterCtrl : POST /register (Request data)
+activate RegisterCtrl
+RegisterCtrl -> RegisterCtrl : validate()
+alt Data Tidak Valid
+    RegisterCtrl --> View : Redirect Back dengan Errors
+else Data Valid
+    RegisterCtrl -> DB : User::create(data)
+    activate DB
+    DB --> RegisterCtrl : User Object
+    deactivate DB
+    RegisterCtrl --> View : Redirect ke /login dengan Success Message
+    deactivate RegisterCtrl
+end
+
+== Proses Login Autentikasi ==
+User -> View : Mengisi Kredensial (Email & Sandi)
+User -> View : Mengklik Masuk
+View -> LoginCtrl : POST /login (Request data)
+activate LoginCtrl
+LoginCtrl -> LoginCtrl : attemptAuth()
+alt Autentikasi Gagal
+    LoginCtrl --> View : Redirect Back dengan Error Kredensial
+else Autentikasi Sukses
+    LoginCtrl -> LoginCtrl : Session::regenerate()
+    LoginCtrl -> DB : Check User Role
+    activate DB
+    DB --> LoginCtrl : Role (Admin / Seller / Buyer)
+    deactivate DB
+    alt Role == Admin
+        LoginCtrl --> View : Redirect ke /admin/dashboard
+    else Role == Seller
+        LoginCtrl --> View : Redirect ke /seller/dashboard
+    else Role == Buyer
+        LoginCtrl --> View : Redirect ke /buyer/dashboard
+    end
+    deactivate LoginCtrl
+end
+
+@enduml
