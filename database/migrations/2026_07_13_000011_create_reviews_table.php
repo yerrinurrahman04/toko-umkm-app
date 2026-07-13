@@ -20,6 +20,9 @@ return new class extends Migration
             $table->text('comment')->nullable();
             $table->boolean('is_moderated')->default(false);
             $table->timestamps();
+
+            // Index for rating query statistics
+            $table->index('rating');
         });
     }
 

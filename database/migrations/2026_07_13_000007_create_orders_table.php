@@ -26,8 +26,9 @@ return new class extends Migration
             $table->string('notes')->nullable();
             $table->timestamps();
 
-            // Composite index for order queries
-            $table->index(['shop_id', 'status']);
+            // Composite indexes for reporting and filtering optimization
+            $table->index(['shop_id', 'status', 'created_at']);
+            $table->index(['status', 'shop_id', 'final_amount']);
         });
     }
 
