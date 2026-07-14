@@ -203,5 +203,10 @@
                 scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
             }
         });
+
+        // 5-minute auto-refresh (300000 ms)
+        setTimeout(() => {
+            window.location.reload();
+        }, 300000);
     </script>
 </x-app-layout>

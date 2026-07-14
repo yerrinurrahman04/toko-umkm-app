@@ -59,6 +59,25 @@
                 </div>
             </div>
 
+            <!-- Grafik Analisis Platform -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Line Chart: Omzet Platform -->
+                <div class="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm md:col-span-2">
+                    <h4 class="font-bold text-slate-800 text-sm mb-4">Tren Omzet Platform (Line Chart)</h4>
+                    <div class="relative h-[250px]">
+                        <canvas id="platformSalesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Donut Chart: Kategori Terlaris -->
+                <div class="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm">
+                    <h4 class="font-bold text-slate-800 text-sm mb-4">Kategori Terlaris (Donut Chart)</h4>
+                    <div class="relative h-[250px] flex items-center justify-center">
+                        <canvas id="platformCategoriesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
             <!-- Recent System Activity -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Recent Orders -->
@@ -122,4 +141,61 @@
 
         </div>
     </div>
+
+    <!-- ChartJS and Auto-reload script -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // 1. Platform Sales Trend
+        const salesTrend = {!! json_encode($salesTrend) !!};
+        const trendLabels = salesTrend.map(item => item.date);
+        const trendValues = salesTrend.map(item => item.total);
+
+        new Chart(document.getElementById('platformSalesChart'), {
+            type: 'line',
+            data: {
+                labels: trendLabels.length ? trendLabels : ['Hari Ini'],
+                datasets: [{
+                    label: 'Omzet Harian (Rp)',
+                    data: trendValues.length ? trendValues : [0],
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // 2. Kategori Terlaris
+        const categoryData = {!! json_encode($topCategories) !!};
+        const categoryLabels = categoryData.map(item => item.name);
+        const categoryValues = categoryData.map(item => item.qty);
+
+        new Chart(document.getElementById('platformCategoriesChart'), {
+            type: 'doughnut',
+            data: {
+                labels: categoryLabels.length ? categoryLabels : ['Belum ada data'],
+                datasets: [{
+                    data: categoryValues.length ? categoryValues : [1],
+                    backgroundColor: [
+                        '#4f46e5', '#a855f7', '#ec4899', '#f43f5e', '#3b82f6'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        // 5-minute auto-refresh (300000 ms)
+        setTimeout(() => {
+            window.location.reload();
+        }, 300000);
+    </script>
 </x-app-layout>
