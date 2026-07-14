@@ -60,7 +60,7 @@ test.describe('Buyer Product Review and Admin Moderation Flow', () => {
     await adminPage.goto('/admin/reviews');
     await expect(adminPage).toHaveURL(/\/admin\/reviews/);
 
-    const reviewRow = adminPage.locator('tr', { hasText: commentText });
+    const reviewRow = adminPage.locator('#pending-reviews-card tr', { hasText: commentText });
     await expect(reviewRow).toBeVisible();
 
     await reviewRow.locator('button:has-text("Approve")').click();

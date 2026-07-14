@@ -105,7 +105,37 @@ class AdminController extends Controller
     public function reviews()
     {
         $reviews = Review::with(['product', 'buyer'])->latest()->get();
-        return view('admin.reviews.index', compact('reviews'));
+
+        // 1. Rata-rata rating per produk
+        $productRatings = \App\Models\Product::withAvg('reviews', 'rating')
+            ->withCount('reviews')
+            ->having('reviews_count', '>', 0)
+            ->orderBy('reviews_avg_rating', 'desc')
+            ->get();
+
+        // 2. Distribusi rating (1 sampai 5 bintang) untuk seluruh produk
+        $distribution = Review::selectRaw('rating, COUNT(id) as count')
+            ->groupBy('rating')
+            ->pluck('count', 'rating')
+            ->toArray();
+
+        $ratingDistribution = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $ratingDistribution[$i] = $distribution[$i] ?? 0;
+        }
+
+        // 3. Daftar ulasan terbaru yang perlu dimoderasi admin (pending)
+        $pendingReviews = Review::with(['product', 'buyer'])
+            ->where('is_moderated', false)
+            ->latest()
+            ->get();
+
+        return view('admin.reviews.index', compact(
+            'reviews',
+            'productRatings',
+            'ratingDistribution',
+            'pendingReviews'
+        ));
     }
 
     /**
