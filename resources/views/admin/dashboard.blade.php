@@ -1,8 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-slate-800 leading-tight">
-            {{ __('Dashboard Admin Sistem') }}
-        </h2>
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-slate-800 leading-tight">
+                {{ __('Dashboard Admin Sistem') }}
+            </h2>
+            <a href="?refresh=1" class="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">
+                Refresh Data
+            </a>
+        </div>
     </x-slot>
 
     <div class="py-12">

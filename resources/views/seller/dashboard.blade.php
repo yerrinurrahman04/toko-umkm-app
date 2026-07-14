@@ -5,6 +5,9 @@
                 {{ __('Dashboard Penjual (UMKM)') }}
             </h2>
             <div class="flex gap-2">
+                <a href="?refresh=1" class="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">
+                    Refresh Data
+                </a>
                 <a href="{{ route('reports.stock_pdf') }}" class="text-xs bg-rose-500 hover:bg-rose-600 text-white font-bold px-3 py-1.5 rounded-xl transition-all">
                     Cetak Stok (PDF)
                 </a>

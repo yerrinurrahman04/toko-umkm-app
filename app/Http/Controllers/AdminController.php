@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Order;
 use App\Models\Review;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class AdminController extends Controller
 {
@@ -14,59 +15,68 @@ class AdminController extends Controller
      */
     public function dashboard()
     {
-        $totalUsers = User::count();
-        $totalSellers = User::where('role', 'seller')->count();
-        $totalBuyers = User::where('role', 'buyer')->count();
-        
-        $totalOrders = Order::count();
-        $totalRevenue = Order::where('status', 'completed')->sum('final_amount');
-        
-        $pendingReviews = Review::where('is_moderated', false)->count();
+        if (request()->has('refresh')) {
+            Cache::forget('admin_dashboard_data');
+            return redirect()->route('admin.dashboard');
+        }
 
-        // Recent users
-        $recentUsers = User::latest()->take(5)->get();
+        $data = Cache::remember('admin_dashboard_data', 600, function () {
+            $totalUsers = User::count();
+            $totalSellers = User::where('role', 'seller')->count();
+            $totalBuyers = User::where('role', 'buyer')->count();
+            
+            $totalOrders = Order::count();
+            $totalRevenue = Order::where('status', 'completed')->sum('final_amount');
+            
+            $pendingReviews = Review::where('is_moderated', false)->count();
 
-        // Recent orders across the platform
-        $recentOrders = Order::with(['buyer', 'shop'])->latest()->take(5)->get();
+            // Recent users
+            $recentUsers = User::latest()->take(5)->get();
 
-        // Platform Sales Trend (completed orders)
-        $salesTrend = Order::where('status', 'completed')
-            ->selectRaw("DATE(updated_at) as date, SUM(final_amount) as total")
-            ->groupBy('date')
-            ->orderBy('date', 'asc')
-            ->take(30)
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'date' => date('d M', strtotime($item->date)),
-                    'total' => (float)$item->total,
-                ];
-            });
+            // Recent orders across the platform
+            $recentOrders = Order::with(['buyer', 'shop'])->latest()->take(5)->get();
 
-        // Top Categories by items sold
-        $topCategories = \Illuminate\Support\Facades\DB::table('order_items')
-            ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->join('category_product', 'order_items.product_id', '=', 'category_product.product_id')
-            ->join('categories', 'category_product.category_id', '=', 'categories.id')
-            ->where('orders.status', 'completed')
-            ->selectRaw('categories.name, SUM(order_items.quantity) as qty')
-            ->groupBy('categories.name')
-            ->orderBy('qty', 'desc')
-            ->take(5)
-            ->get();
+            // Platform Sales Trend (completed orders)
+            $salesTrend = Order::where('status', 'completed')
+                ->selectRaw("DATE(updated_at) as date, SUM(final_amount) as total")
+                ->groupBy('date')
+                ->orderBy('date', 'asc')
+                ->take(30)
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'date' => date('d M', strtotime($item->date)),
+                        'total' => (float)$item->total,
+                    ];
+                });
 
-        return view('admin.dashboard', compact(
-            'totalUsers',
-            'totalSellers',
-            'totalBuyers',
-            'totalOrders',
-            'totalRevenue',
-            'pendingReviews',
-            'recentUsers',
-            'recentOrders',
-            'salesTrend',
-            'topCategories'
-        ));
+            // Top Categories by items sold
+            $topCategories = \Illuminate\Support\Facades\DB::table('order_items')
+                ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                ->join('category_product', 'order_items.product_id', '=', 'category_product.product_id')
+                ->join('categories', 'category_product.category_id', '=', 'categories.id')
+                ->where('orders.status', 'completed')
+                ->selectRaw('categories.name, SUM(order_items.quantity) as qty')
+                ->groupBy('categories.name')
+                ->orderBy('qty', 'desc')
+                ->take(5)
+                ->get();
+
+            return compact(
+                'totalUsers',
+                'totalSellers',
+                'totalBuyers',
+                'totalOrders',
+                'totalRevenue',
+                'pendingReviews',
+                'recentUsers',
+                'recentOrders',
+                'salesTrend',
+                'topCategories'
+            );
+        });
+
+        return view('admin.dashboard', $data);
     }
 
     /**

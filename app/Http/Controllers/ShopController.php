@@ -31,70 +31,79 @@ class ShopController extends Controller
             ]);
         }
 
-        // Real-time KPI summary
-        $totalOrders = Order::where('shop_id', $shop->id)->count();
-        $pendingOrders = Order::where('shop_id', $shop->id)->where('status', 'pending')->count();
-        $completedOrders = Order::where('shop_id', $shop->id)->where('status', 'completed')->get();
-        
-        $totalRevenue = $completedOrders->sum('final_amount');
-        $uniqueBuyers = Order::where('shop_id', $shop->id)
-            ->distinct('buyer_id')
-            ->count('buyer_id');
+        if (request()->has('refresh')) {
+            \Illuminate\Support\Facades\Cache::forget('seller_dashboard_data_' . $user->id);
+            return redirect()->route('seller.dashboard');
+        }
 
-        // Low stock products warning
-        $lowStockProducts = Product::where('shop_id', $shop->id)
-            ->where('stock', '<', 5)
-            ->get();
+        $data = \Illuminate\Support\Facades\Cache::remember('seller_dashboard_data_' . $user->id, 600, function () use ($shop) {
+            // Real-time KPI summary
+            $totalOrders = Order::where('shop_id', $shop->id)->count();
+            $pendingOrders = Order::where('shop_id', $shop->id)->where('status', 'pending')->count();
+            $completedOrders = Order::where('shop_id', $shop->id)->where('status', 'completed')->get();
+            
+            $totalRevenue = $completedOrders->sum('final_amount');
+            $uniqueBuyers = Order::where('shop_id', $shop->id)
+                ->distinct('buyer_id')
+                ->count('buyer_id');
 
-        // Recent orders
-        $recentOrders = Order::where('shop_id', $shop->id)
-            ->with(['buyer', 'payment'])
-            ->latest()
-            ->take(5)
-            ->get();
+            // Low stock products warning
+            $lowStockProducts = Product::where('shop_id', $shop->id)
+                ->where('stock', '<', 5)
+                ->get();
 
-        // 1. Sales Trend (last 7 days)
-        $salesTrend = \DB::table('orders')
-            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m-%d") as date, SUM(final_amount) as total')
-            ->where('shop_id', $shop->id)
-            ->where('status', 'completed')
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
+            // Recent orders
+            $recentOrders = Order::where('shop_id', $shop->id)
+                ->with(['buyer', 'payment'])
+                ->latest()
+                ->take(5)
+                ->get();
 
-        // 2. Best Selling Products (top 5)
-        $topProducts = \DB::table('order_items')
-            ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->join('products', 'order_items.product_id', '=', 'products.id')
-            ->selectRaw('products.name, SUM(order_items.quantity) as qty')
-            ->where('orders.shop_id', $shop->id)
-            ->where('orders.status', 'completed')
-            ->groupBy('products.name')
-            ->orderByDesc('qty')
-            ->take(5)
-            ->get();
+            // 1. Sales Trend (last 7 days)
+            $salesTrend = \DB::table('orders')
+                ->selectRaw('DATE_FORMAT(created_at, "%Y-%m-%d") as date, SUM(final_amount) as total')
+                ->where('shop_id', $shop->id)
+                ->where('status', 'completed')
+                ->groupBy('date')
+                ->orderBy('date')
+                ->get();
 
-        // 3. Rating & Reviews count
-        $reviewsDistribution = \DB::table('reviews')
-            ->join('products', 'reviews.product_id', '=', 'products.id')
-            ->selectRaw('rating, COUNT(reviews.id) as count')
-            ->where('products.shop_id', $shop->id)
-            ->groupBy('rating')
-            ->orderBy('rating')
-            ->get();
+            // 2. Best Selling Products (top 5)
+            $topProducts = \DB::table('order_items')
+                ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                ->join('products', 'order_items.product_id', '=', 'products.id')
+                ->selectRaw('products.name, SUM(order_items.quantity) as qty')
+                ->where('orders.shop_id', $shop->id)
+                ->where('orders.status', 'completed')
+                ->groupBy('products.name')
+                ->orderByDesc('qty')
+                ->take(5)
+                ->get();
 
-        return view('seller.dashboard', compact(
-            'shop',
-            'totalOrders',
-            'pendingOrders',
-            'totalRevenue',
-            'uniqueBuyers',
-            'lowStockProducts',
-            'recentOrders',
-            'salesTrend',
-            'topProducts',
-            'reviewsDistribution'
-        ));
+            // 3. Rating & Reviews count
+            $reviewsDistribution = \DB::table('reviews')
+                ->join('products', 'reviews.product_id', '=', 'products.id')
+                ->selectRaw('rating, COUNT(reviews.id) as count')
+                ->where('products.shop_id', $shop->id)
+                ->groupBy('rating')
+                ->orderBy('rating')
+                ->get();
+
+            return compact(
+                'totalOrders',
+                'pendingOrders',
+                'totalRevenue',
+                'uniqueBuyers',
+                'lowStockProducts',
+                'recentOrders',
+                'salesTrend',
+                'topProducts',
+                'reviewsDistribution'
+            );
+        });
+
+        $data['shop'] = $shop;
+        return view('seller.dashboard', $data);
     }
 
     /**
