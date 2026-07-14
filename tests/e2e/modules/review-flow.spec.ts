@@ -1,7 +1,16 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../page-objects/LoginPage';
+import { execSync } from 'child_process';
 
 test.describe('Buyer Product Review and Admin Moderation Flow', () => {
+  test.beforeAll(() => {
+    try {
+      execSync('php tests/e2e/prepare_test_order.php');
+    } catch (e) {
+      console.error('Failed to run prepare_test_order.php:', e);
+    }
+  });
+
   test('should allow buyer to review completed order, admin to moderate, and display on product page', async ({ browser }) => {
     // 1. Log in as Buyer and find a completed order that does NOT have a review yet
     const buyerContext = await browser.newContext();
