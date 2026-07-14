@@ -21,7 +21,7 @@ class StockExport implements FromCollection, WithHeadings, WithMapping
     */
     public function collection()
     {
-        $query = Product::with(['category', 'shop', 'variants']);
+        $query = Product::with(['categories', 'shop', 'variants']);
         if ($this->shopId) {
             $query->where('shop_id', $this->shopId);
         }
@@ -50,7 +50,7 @@ class StockExport implements FromCollection, WithHeadings, WithMapping
         return [
             $product->id,
             $product->shop->name,
-            $product->category->name,
+            $product->categories->pluck('name')->implode(', ') ?: 'Tidak ada kategori',
             $product->name,
             $product->price,
             $product->stock,

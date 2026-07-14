@@ -1,16 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../page-objects/LoginPage';
-import { execSync } from 'child_process';
 
 test.describe('Buyer Product Review and Admin Moderation Flow', () => {
-  test.beforeAll(() => {
-    try {
-      execSync('php tests/e2e/prepare_test_order.php');
-    } catch (e) {
-      console.error('Failed to run prepare_test_order.php:', e);
-    }
-  });
-
   test('should allow buyer to review completed order, admin to moderate, and display on product page', async ({ browser }) => {
     // 1. Log in as Buyer and find a completed order that does NOT have a review yet
     const buyerContext = await browser.newContext();
@@ -41,7 +32,8 @@ test.describe('Buyer Product Review and Admin Moderation Flow', () => {
         reviewFormFound = true;
         const productLink = buyerPage.locator('a[href*="/products/"]').first();
         productName = await productLink.locator('strong').innerText();
-        productUrl = await productLink.getAttribute('href');
+        const rawHref = await productLink.getAttribute('href');
+        productUrl = rawHref ? new URL(rawHref, 'http://127.0.0.1:8000').pathname : null;
         
         await reviewForm.locator('select[name="rating"]').selectOption('5');
         await reviewForm.locator('textarea[name="comment"]').fill(commentText);
