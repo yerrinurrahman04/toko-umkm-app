@@ -40,18 +40,57 @@ php artisan make:request Update[Entity]Request
 
 ---
 
-## Langkah 5: Membuat Controller
-Buat resource controller di `app/Http/Controllers/[Entity]Controller.php` yang menggunakan Form Requests:
+## Langkah 5: Membuat Service Class di `app/Services/`
+Buat service class di `app/Services/[Entity]Service.php` untuk menaruh semua logika bisnis kompleks, transaksi database, atau manipulasi data:
+```php
+<?php
+
+namespace App\Services;
+
+use App\Models\[Entity];
+use Illuminate\Support\Facades\DB;
+
+class [Entity]Service
+{
+    public function create(array $data)
+    {
+        return DB::transaction(function () use ($data) {
+            return [Entity]::create($data);
+        });
+    }
+
+    public function update([Entity] $entity, array $data)
+    {
+        return DB::transaction(function () use ($entity, $data) {
+            $entity->update($data);
+            return $entity;
+        });
+    }
+
+    public function delete([Entity] $entity)
+    {
+        return DB::transaction(function () use ($entity) {
+            return $entity->delete();
+        });
+    }
+}
+```
+
+---
+
+## Langkah 6: Membuat Controller
+Buat resource controller di `app/Http/Controllers/[Entity]Controller.php` yang menggunakan Form Requests dan Service Class yang telah dibuat:
 ```bash
 php artisan make:controller [Entity]Controller --resource
 ```
 *Aturan*:
 *   Gunakan tipe data Form Request pada parameter `store` dan `update`.
-*   Terapkan DB Transaction (`DB::transaction`) jika menyimpan data ke beberapa tabel sekaligus.
+*   Inject `[Entity]Service` di constructor atau sebagai parameter method, dan delegasikan proses penyimpanan, pengeditan, atau penghapusan ke Service tersebut.
+*   Tangkap exception menggunakan blok `try-catch` di Controller untuk menampilkan error flash message jika terjadi kegagalan transaksi di Service.
 
 ---
 
-## Langkah 6: Daftarkan Route di `routes/web.php`
+## Langkah 7: Daftarkan Route di `routes/web.php`
 Daftarkan resource route di dalam grup middleware auth dan batasi dengan peran (Role) yang sesuai:
 ```php
 Route::middleware(['auth', 'role:seller'])->group(function () {
@@ -68,7 +107,7 @@ Route::middleware(['auth', 'role:seller'])->group(function () {
 
 ---
 
-## Langkah 7: Membuat Halaman Views CRUD (Blade + Tailwind)
+## Langkah 8: Membuat Halaman Views CRUD (Blade + Tailwind)
 Buat 4 file view di `resources/views/[entity_plural]/`:
 1.  `index.blade.php`: Menampilkan tabel list data lengkap dengan pagination.
 2.  `create.blade.php`: Formulir input data baru dilengkapi proteksi `@csrf`.

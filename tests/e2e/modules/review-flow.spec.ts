@@ -71,7 +71,8 @@ test.describe('Buyer Product Review and Admin Moderation Flow', () => {
     const guestPage = await guestContext.newPage();
     
     await guestPage.goto(productUrl!);
-    await expect(guestPage.locator('body')).toContainText(commentText);
+    const reviewLocator = guestPage.locator(`text=${commentText}`).first();
+    await expect(reviewLocator).toBeVisible({ timeout: 10000 });
     await guestContext.close();
   });
 });

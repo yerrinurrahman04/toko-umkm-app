@@ -5,9 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Payment;
 use Illuminate\Http\Request;
+use App\Services\PaymentService;
 
 class PaymentController extends Controller
 {
+    protected $paymentService;
+
+    public function __construct(PaymentService $paymentService)
+    {
+        $this->paymentService = $paymentService;
+    }
+
     /**
      * Show payment confirmation upload form.
      */
@@ -40,21 +48,19 @@ class PaymentController extends Controller
             'notes' => 'nullable|string|max:255'
         ]);
 
-        $receiptPath = null;
-        if ($request->hasFile('receipt_image')) {
-            $receiptPath = $request->file('receipt_image')->store('payments/receipts', 'public');
+        try {
+            $this->paymentService->storePayment(
+                $order->id,
+                $request->amount,
+                $request->payment_method,
+                $request->file('receipt_image'),
+                $request->notes
+            );
+
+            return redirect()->route('buyer.dashboard')->with('success', 'Bukti pembayaran berhasil diunggah. Menunggu verifikasi penjual.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
-
-        Payment::create([
-            'order_id' => $order->id,
-            'amount' => $request->amount,
-            'payment_method' => $request->payment_method,
-            'receipt_image' => $receiptPath,
-            'status' => 'pending',
-            'notes' => $request->notes
-        ]);
-
-        return redirect()->route('buyer.dashboard')->with('success', 'Bukti pembayaran berhasil diunggah. Menunggu verifikasi penjual.');
     }
 
     /**
@@ -74,19 +80,11 @@ class PaymentController extends Controller
             'notes' => 'nullable|string|max:255'
         ]);
 
-        $payment->update([
-            'status' => $request->status,
-            'notes' => $request->notes,
-            'verified_at' => now()
-        ]);
-
-        if ($request->status === 'approved') {
-            $order->update(['status' => 'paid']);
-        } else {
-            // Reverted back to pending or payment rejected state
-            $order->update(['status' => 'pending']);
+        try {
+            $this->paymentService->verifyPayment($payment->id, $request->status, $request->notes);
+            return redirect()->back()->with('success', 'Status pembayaran berhasil diperbarui.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
         }
-
-        return redirect()->back()->with('success', 'Status pembayaran berhasil diperbarui.');
     }
 }

@@ -10,6 +10,7 @@ use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect /dashboard based on user role
@@ -111,6 +112,17 @@ Route::middleware('auth')->group(function () {
         Route::patch('/admin/users/{id}/role', [AdminController::class, 'updateUserRole'])->name('admin.users.role');
         Route::get('/admin/reviews', [AdminController::class, 'reviews'])->name('admin.reviews.index');
         Route::post('/admin/reviews/{id}/moderate', [AdminController::class, 'moderateReview'])->name('admin.reviews.moderate');
+
+        // Admin Categories Management
+        Route::resource('/admin/categories', CategoryController::class)->names([
+            'index' => 'admin.categories.index',
+            'create' => 'admin.categories.create',
+            'store' => 'admin.categories.store',
+            'show' => 'admin.categories.show',
+            'edit' => 'admin.categories.edit',
+            'update' => 'admin.categories.update',
+            'destroy' => 'admin.categories.destroy',
+        ]);
     });
 
     // --- REPORT GENERATION (PDF & EXCEL) ---

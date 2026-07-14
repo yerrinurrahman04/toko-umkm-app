@@ -10,12 +10,14 @@ use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
+use App\Services\OrderService;
+
 class OrderController extends Controller
 {
     /**
      * Store new order from checkout.
      */
-    public function store(Request $request)
+    public function store(Request $request, OrderService $orderService)
     {
         $cart = session()->get('cart', []);
         if (empty($cart)) {
@@ -28,90 +30,24 @@ class OrderController extends Controller
             'notes' => 'nullable|string|max:255'
         ]);
 
-        // Decode courier details
-        $courierParts = explode('|', $request->courier);
-        $courierName = $courierParts[0];
-        $shippingCost = floatval($courierParts[1]);
-        $estimationTime = $courierParts[2] ?? '';
+        try {
+            $order = $orderService->createOrder(
+                $cart,
+                auth()->id(),
+                $request->shipping_address,
+                $request->courier,
+                $request->notes,
+                session()->get('cart_voucher')
+            );
 
-        $subtotal = 0;
-        $shopId = null;
-        foreach ($cart as $item) {
-            $subtotal += $item['price'] * $item['quantity'];
-            $shopId = $item['shop_id'];
+            // Clear session cart
+            session()->forget('cart');
+            session()->forget('cart_voucher');
+
+            return redirect()->route('payments.confirm', $order->id)->with('success', 'Pesanan berhasil dibuat! Silakan lakukan konfirmasi pembayaran.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
-
-        $voucher = session()->get('cart_voucher');
-        $discountAmount = 0;
-        $voucherId = null;
-
-        if ($voucher) {
-            $voucherId = $voucher['id'];
-            if ($voucher['type'] === 'percent') {
-                $discountAmount = $subtotal * ($voucher['value'] / 100);
-            } else {
-                $discountAmount = min($voucher['value'], $subtotal);
-            }
-        }
-
-        $finalAmount = max(0, $subtotal - $discountAmount) + $shippingCost;
-        $orderNumber = 'ORD-' . date('Ymd') . '-' . strtoupper(Str::random(4));
-
-        // Create Order
-        $order = Order::create([
-            'buyer_id' => auth()->id(),
-            'shop_id' => $shopId,
-            'voucher_id' => $voucherId,
-            'order_number' => $orderNumber,
-            'total_amount' => $subtotal,
-            'discount_amount' => $discountAmount,
-            'shipping_cost' => $shippingCost,
-            'final_amount' => $finalAmount,
-            'status' => 'pending',
-            'shipping_address' => $request->shipping_address,
-            'notes' => $request->notes
-        ]);
-
-        // Create Order Items and decrease stock
-        foreach ($cart as $key => $item) {
-            OrderItem::create([
-                'order_id' => $order->id,
-                'product_id' => $item['product_id'],
-                'product_variant_id' => $item['variant_id'],
-                'price' => $item['price'],
-                'quantity' => $item['quantity'],
-                'discount_amount' => 0.00, // already included in global voucher discount
-                'total' => $item['price'] * $item['quantity']
-            ]);
-
-            // Adjust stock
-            if ($item['variant_id']) {
-                $variant = ProductVariant::find($item['variant_id']);
-                if ($variant) {
-                    $variant->decrement('stock', $item['quantity']);
-                }
-            } else {
-                $product = Product::find($item['product_id']);
-                if ($product) {
-                    $product->decrement('stock', $item['quantity']);
-                }
-            }
-        }
-
-        // Create Shipment
-        Shipment::create([
-            'order_id' => $order->id,
-            'courier_name' => $courierName,
-            'shipping_cost' => $shippingCost,
-            'estimation_time' => $estimationTime,
-            'status' => 'pending'
-        ]);
-
-        // Clear session cart
-        session()->forget('cart');
-        session()->forget('cart_voucher');
-
-        return redirect()->route('payments.confirm', $order->id)->with('success', 'Pesanan berhasil dibuat! Silakan lakukan konfirmasi pembayaran.');
     }
 
     /**
