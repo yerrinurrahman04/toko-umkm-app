@@ -112,6 +112,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/admin/users/{id}/role', [AdminController::class, 'updateUserRole'])->name('admin.users.role');
         Route::get('/admin/reviews', [AdminController::class, 'reviews'])->name('admin.reviews.index');
         Route::post('/admin/reviews/{id}/moderate', [AdminController::class, 'moderateReview'])->name('admin.reviews.moderate');
+        Route::get('/admin/seller-performance', [AdminController::class, 'sellerPerformance'])->name('admin.seller_performance');
 
         // Admin Categories Management
         Route::resource('/admin/categories', CategoryController::class)->names([

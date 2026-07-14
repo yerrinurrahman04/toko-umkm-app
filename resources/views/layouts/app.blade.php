@@ -77,6 +77,11 @@
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
                                         Kelola Kategori
                                     </a>
+                                    <a href="{{ route('admin.seller_performance') }}" 
+                                       class="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-all hover:bg-indigo-50/50 hover:text-indigo-600 {{ request()->routeIs('admin.seller_performance') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600' }}">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2"></path></svg>
+                                        Performa Penjual
+                                    </a>
                                 @endif
                             </div>
                         </aside>

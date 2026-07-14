@@ -157,4 +157,21 @@ class AdminController extends Controller
             return redirect()->back()->with('success', 'Ulasan berhasil dihapus.');
         }
     }
+
+    /**
+     * View seller performance comparisons.
+     */
+    public function sellerPerformance()
+    {
+        $limitDate = now()->subMonths(3);
+
+        $sellerPerformance = \App\Models\Shop::with(['user'])
+            ->select('shops.*')
+            ->selectRaw('(SELECT COALESCE(SUM(final_amount), 0) FROM orders WHERE orders.shop_id = shops.id AND orders.status = "completed" AND orders.updated_at >= ?) as total_revenue', [$limitDate])
+            ->selectRaw('(SELECT COUNT(id) FROM orders WHERE orders.shop_id = shops.id AND orders.status = "completed" AND orders.updated_at >= ?) as total_orders', [$limitDate])
+            ->orderBy('total_revenue', 'desc')
+            ->get();
+
+        return view('admin.seller-performance', compact('sellerPerformance'));
+    }
 }
